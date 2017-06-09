@@ -3,6 +3,8 @@ package delaunayvid2;
 import delaunay.Delaunay;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.util.ArrayList;
@@ -75,13 +77,23 @@ ArrayList list = new ArrayList();
         return bkgd;
     }
     
+    void setDelaunay(){
+        d.drawDelaunay(true);
+        d.drawVoronoi(false);
+    }
+    void setVoronoi(){
+        d.drawDelaunay(false);
+        d.drawVoronoi(true);
+    }
+    
     void proc(){
-       Graphics g = bkgd.createGraphics();
+       Graphics2D g = bkgd.createGraphics();
        raster = img.getRaster();
       //  img.copyData(raster);
       g.setColor(Color.black);
       g.fillRect(0, 0, width, height);
       g.setColor(Color.white);
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
        
      // list.clear();
      int count = 0;
@@ -96,15 +108,21 @@ ArrayList list = new ArrayList();
                  //System.out.println(n);
                  if( Math.pow( (((rand.nextDouble()*variance)+band) - n),2 ) < thresh ){
                      //list.add(new P(x, y));
-                   //  g.drawLine(x, y, x, y);
-                   d.addPoint(x, y);
+                     if(gui.mode == Gui.Mode.dots){
+                         g.drawLine(x, y, x, y);
+                     }else{
+                      d.addPoint(x, y);
+                     }
                    
                  }
              }
         }
         nodes = count; //list.size();
-       // g.dispose();
-       d.draw(g);
+        if(gui.mode == Gui.Mode.dots){
+         g.dispose();
+        }else{
+         d.draw(g);
+        }
        
     }
     

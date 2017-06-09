@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -16,6 +17,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -27,10 +29,12 @@ public class Gui extends JFrame implements ChangeListener{
     JCheckBox seedCheck, skipCheck, viewdots;
     JButton openFile, nextframe, play, stop, back, seek, build;
     JFileChooser chooser;
+    JRadioButton dots, delaunay, voronoi;
+    ButtonGroup radiogroup;
     File infile;
     VidCtl vid;
     ImgProc p;
-    JLabel bandval, varval, threshval, nodecount;
+    JLabel bandval, varval, threshval, nodecount, framenum;
     int nodes;
     boolean seed = true;
     Display display = null;
@@ -38,12 +42,19 @@ public class Gui extends JFrame implements ChangeListener{
     boolean threadstarted = false;
     BufferedImage img, pimg;
     boolean dotview = false;
+    public enum Mode{
+        dots,delaunay,voronoi
+    }
+    public Mode mode;
+    
     
     Gui(int w, int h){
         
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
         setSize(w,h);
         
+        mode = Mode.delaunay;
+                
         chooser = new JFileChooser();
         
         add(Box.createVerticalStrut(30));
@@ -106,42 +117,63 @@ public class Gui extends JFrame implements ChangeListener{
         });
         checks.add(skipCheck); 
         
-       // add(Box.createVerticalStrut(20));
-        nodecount = new JLabel("Node Count: "+nodes);
-        checks.add(nodecount);
-        
-        
+        dots = new JRadioButton("Dots");
+        delaunay = new JRadioButton("Delaunay");
+        voronoi = new JRadioButton("Voronoi");
+        radiogroup = new ButtonGroup();
+        radiogroup.add(dots);
+        radiogroup.add(delaunay);
+        radiogroup.add(voronoi);
+        delaunay.setSelected(true);
+        dots.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mode = Mode.dots;
+            }
+        });
+        delaunay.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mode = Mode.delaunay;
+                p.setDelaunay();
+            }
+        });
+        voronoi.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mode = Mode.voronoi;
+                p.setVoronoi();
+            }
+        });
+        checks.add(dots);
+        checks.add(delaunay);
+        checks.add(voronoi);
+                
         JPanel buildrow = new JPanel(new FlowLayout());
         add(buildrow);
         
-        viewdots = new JCheckBox("View Dots");
+        JButton outfile = new JButton("Select output file");
+        buildrow.add(outfile);
+        
+        viewdots = new JCheckBox("Process");
         viewdots.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(viewdots.isSelected()){
                     dotview = true;
+                    if(vid != null && !vid.go){
+                    display.update(imgProc(img));
+                    }
                 }else{
                     dotview = false;
+                    if(vid != null && !vid.go)
+                    display.update(img);
                 }
             }
         });
         //viewdots.setSelected(true);
         buildrow.add(viewdots);
         
-        build = new JButton("Build");
-        build.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                    if(vid != null){
-//                       p.setImg(img);
-//                       p.proc();
-//                       display.update(p.getImage());
-                       display.update(imgProc(img));
-                       updateNodes();
-                    }
-            }
-        });
-        buildrow.add(build);
         
     //    add(Box.createVerticalStrut(20));   
         JPanel vidctls = new JPanel(new FlowLayout());
@@ -228,6 +260,13 @@ public class Gui extends JFrame implements ChangeListener{
         });
         vidctls.add(seek);  
         
+    //    add(Box.createVerticalStrut(20));   
+        JPanel framemsg = new JPanel(new FlowLayout());
+        add(framemsg);
+        
+        framenum = new JLabel();
+        framemsg.add(framenum);
+        
         p = new ImgProc();
         p.getVals(this);
         
@@ -261,18 +300,24 @@ public class Gui extends JFrame implements ChangeListener{
          
     }
     
+    void selectSaveFile(){
+        int rtn = chooser.showSaveDialog(this);
+        if(rtn == JFileChooser.APPROVE_OPTION){
+            File save = chooser.getSelectedFile();
+        }
+    }
+    
     BufferedImage imgProc(BufferedImage img){
             p.setImg(img);
             p.proc();
             return p.getImage();
     }
     
-
-    
-    void updateNodes(){
-       nodecount.setText("Node Count: "+String.valueOf(p.getNodes()));
+    void updateFrameNum(long current, long total){
+      //  System.out.println(current+"  "+total);
+        framenum.setText("Frame: "+current+" / "+total);
     }
-        
+            
     double bandVal(){
         return band.getValue()/1000.0;
     }
@@ -311,7 +356,6 @@ public class Gui extends JFrame implements ChangeListener{
 //           d.repaint();         
        }
        }
-       updateNodes();
        
     }
     
@@ -325,7 +369,6 @@ public class Gui extends JFrame implements ChangeListener{
         this.img = img;
         if(dotview){
             display.update(imgProc(img));
-            updateNodes();
         }else{
             display.update(img);
         }    

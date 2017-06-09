@@ -22,6 +22,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     BufferedImage img;
     Gui g;
     File infile;
+    long currentframe = 0;
     
     VidCtl(File infile, Gui g){
         this.infile = infile;
@@ -41,16 +42,22 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
                image1st = true;
             }
             g.updateImg(img);
+            currentframe++;
+            if(currentframe > totalframes){
+                currentframe = 0;
+            }
+            g.updateFrameNum(currentframe, totalframes);
         
       //  super.onVideoPicture(event);
     }
     
     @Override
     public void onAddStream(IAddStreamEvent event){
-     //  totalframes = event.getSource().getContainer().getStream(0).getNumFrames();
+       totalframes = event.getSource().getContainer().getStream(0).getNumFrames();
        framerate = Math.round(1000/event.getSource().getContainer().getStream(0).getFrameRate().getDouble());
        
     }
+    
     
     boolean getFrame(boolean stop){
         boolean rtn = true;
