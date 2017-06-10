@@ -18,7 +18,7 @@ BufferedImage img, bkgd;
 Raster raster;
 Random rand = new Random();
 Gui gui;
-Delaunay d;
+Delaunay d = new Delaunay();
 boolean delaunayInit = false;
 boolean seed = true;
 double variance;// = 0.15;
@@ -41,7 +41,7 @@ ArrayList list = new ArrayList();
           height = img.getHeight();
           bkgd = new BufferedImage(img.getColorModel(), img.copyData(null), img.isAlphaPremultiplied(), null);
           if(!delaunayInit){
-              d = new Delaunay(img.getWidth(), img.getHeight());
+             d.setSize(img.getWidth(), img.getHeight());
 //              d.drawDelaunay(false);
 //              d.drawVoronoi(true);
               delaunayInit = true;
@@ -87,8 +87,9 @@ ArrayList list = new ArrayList();
     }
     
     void proc(){
-       Graphics2D g = bkgd.createGraphics();
-       raster = img.getRaster();
+       
+       raster = bkgd.getRaster();
+       Graphics2D g = img.createGraphics();
       //  img.copyData(raster);
       g.setColor(Color.black);
       g.fillRect(0, 0, width, height);
@@ -132,7 +133,7 @@ ArrayList list = new ArrayList();
 
     }  
     BufferedImage getImage(){
-        return bkgd;
+        return img;
     }
     
     int getNodes(){

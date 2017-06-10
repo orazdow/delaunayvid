@@ -34,7 +34,7 @@ public class Gui extends JFrame implements ChangeListener{
     File infile;
     VidCtl vid;
     ImgProc p;
-    JLabel bandval, varval, threshval, nodecount, framenum;
+    JLabel bandval, varval, threshval, nodecount, framenum, convmsg;
     int nodes;
     boolean seed = true;
     Display display = null;
@@ -153,6 +153,12 @@ public class Gui extends JFrame implements ChangeListener{
         add(buildrow);
         
         JButton outfile = new JButton("Select output file");
+        outfile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectSaveFile();
+            }
+        });
         buildrow.add(outfile);
         
         viewdots = new JCheckBox("Process");
@@ -267,6 +273,9 @@ public class Gui extends JFrame implements ChangeListener{
         framenum = new JLabel();
         framemsg.add(framenum);
         
+        convmsg = new JLabel();
+        framemsg.add(convmsg);
+        
         p = new ImgProc();
         p.getVals(this);
         
@@ -303,7 +312,18 @@ public class Gui extends JFrame implements ChangeListener{
     void selectSaveFile(){
         int rtn = chooser.showSaveDialog(this);
         if(rtn == JFileChooser.APPROVE_OPTION){
+            if(vid != null){
+//                vid.converting = true;
+//                stop();
+//                vid.rewind();
+            }
             File save = chooser.getSelectedFile();
+            if(vid != null){
+                stop();
+             //   vid.rewind();
+                vid.setWriter(save);
+                convmsg.setText("Convert Mode...");
+            }
         }
     }
     
