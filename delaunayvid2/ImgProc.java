@@ -1,6 +1,7 @@
 package delaunayvid2;
 
 import delaunay.Delaunay;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -27,6 +28,7 @@ double thresh;// = 0.005;
 int nodes = 0;
 int inc = 1;
 ArrayList list = new ArrayList();
+Graphics2D g;
 
     ImgProc(){
         
@@ -44,6 +46,8 @@ ArrayList list = new ArrayList();
              d.setSize(img.getWidth(), img.getHeight());
 //              d.drawDelaunay(false);
 //              d.drawVoronoi(true);
+//                d.setDelaunayColor(Color.red);
+//                d.setVoronoiColor(Color.white);
               delaunayInit = true;
           }
     }
@@ -78,26 +82,30 @@ ArrayList list = new ArrayList();
     }
     
     void setDelaunay(){
-        d.drawDelaunay(true);
-        d.drawVoronoi(false);
+        d.setDrawDelaunay(true);
+        d.setDrawVoronoi(false);
     }
     void setVoronoi(){
-        d.drawDelaunay(false);
-        d.drawVoronoi(true);
+        d.setDrawDelaunay(false);
+        d.setDrawVoronoi(true);
     }
     
     void proc(){
        
        raster = bkgd.getRaster();
-       Graphics2D g = img.createGraphics();
+       g = img.createGraphics();
       //  img.copyData(raster);
-      g.setColor(Color.black);
-      g.fillRect(0, 0, width, height);
-      g.setColor(Color.white);
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-       
+
+       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+     //  g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+      // g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+      // g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+       g.setColor(Color.black);
+       g.fillRect(0, 0, width, height);
+       g.setColor(Color.white);
+
      // list.clear();
-     int count = 0;
+    // int count = 0;
      d.reset();
       if(seed){
           rand.setSeed(99);
@@ -118,7 +126,7 @@ ArrayList list = new ArrayList();
                  }
              }
         }
-        nodes = count; //list.size();
+        //nodes = count; //list.size();
         if(gui.mode == Gui.Mode.dots){
          g.dispose();
         }else{

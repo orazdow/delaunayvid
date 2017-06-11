@@ -40,7 +40,7 @@ public class Gui extends JFrame implements ChangeListener{
     Display display = null;
     Thread t = null;
     boolean threadstarted = false;
-    BufferedImage img, pimg;
+    BufferedImage img, bkgd;
     boolean dotview = false;
     public enum Mode{
         dots,delaunay,voronoi
@@ -129,6 +129,8 @@ public class Gui extends JFrame implements ChangeListener{
             @Override
             public void actionPerformed(ActionEvent e) {
                 mode = Mode.dots;
+                if(dotview)
+                stoppedUpdate();
             }
         });
         delaunay.addActionListener(new ActionListener() {
@@ -136,6 +138,8 @@ public class Gui extends JFrame implements ChangeListener{
             public void actionPerformed(ActionEvent e) {
                 mode = Mode.delaunay;
                 p.setDelaunay();
+                if(dotview)
+                stoppedUpdate();
             }
         });
         voronoi.addActionListener(new ActionListener() {
@@ -143,6 +147,8 @@ public class Gui extends JFrame implements ChangeListener{
             public void actionPerformed(ActionEvent e) {
                 mode = Mode.voronoi;
                 p.setVoronoi();
+                if(dotview)
+                stoppedUpdate();
             }
         });
         checks.add(dots);
@@ -166,12 +172,16 @@ public class Gui extends JFrame implements ChangeListener{
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(viewdots.isSelected()){
-                    dotview = true;
-                    if(vid != null && !vid.go){
-                    display.update(imgProc(img));
+                    dotview = true; bkgd = p.bkgd; if(bkgd == null){
+                        bkgd = img;
+                    }
+                    if(vid != null && !vid.go){ 
+                    display.update(imgProc(bkgd));
                     }
                 }else{
-                    dotview = false;
+                    dotview = false; if(bkgd == null){
+                        bkgd = p.bkgd;
+                    }
                     if(vid != null && !vid.go)
                     display.update(img);
                 }
@@ -333,6 +343,15 @@ public class Gui extends JFrame implements ChangeListener{
             return p.getImage();
     }
     
+    void stoppedUpdate(){
+        bkgd = p.bkgd; 
+        if(bkgd == null){bkgd = img;}                      
+        if(vid != null && !vid.go){ 
+         display.update(imgProc(bkgd));
+        }             
+                  
+    }
+    
     void updateFrameNum(long current, long total){
       //  System.out.println(current+"  "+total);
         framenum.setText("Frame: "+current+" / "+total);
@@ -375,8 +394,14 @@ public class Gui extends JFrame implements ChangeListener{
 //           p.proc();
 //           d.repaint();         
        }
+        if(dotview && !vid.go){
+            if(mode == Mode.dots || !source.getValueIsAdjusting()){
+                stoppedUpdate();
+            }
+        }
+        
        }
-       
+
     }
     
  
@@ -386,7 +411,7 @@ public class Gui extends JFrame implements ChangeListener{
     }
     
     void updateImg(BufferedImage img){
-        this.img = img;
+        this.img = img; 
         if(dotview){
             display.update(imgProc(img));
         }else{
@@ -400,7 +425,7 @@ public class Gui extends JFrame implements ChangeListener{
             
         Display(BufferedImage img){
         Gui.this.img = img;
-        pimg = new BufferedImage(img.getColorModel(), img.copyData(null), img.isAlphaPremultiplied(), null);
+      //  pimg = new BufferedImage(img.getColorModel(), img.copyData(null), img.isAlphaPremultiplied(), null);
         setSize(img.getWidth(), img.getHeight());
         icon = new ImageIcon(img);
         JLabel label = new JLabel(icon);

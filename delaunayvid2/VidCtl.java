@@ -20,7 +20,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     long next = 0;
     long totalframes;
     long framerate = 33;
-    boolean go = true;
+    boolean go = false;
     boolean ff = false;
     boolean converting = false;
     BufferedImage img;
