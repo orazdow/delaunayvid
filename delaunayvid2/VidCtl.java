@@ -34,16 +34,24 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
         reader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
         reader.addListener(this);
         this.g = g;
-        getFrame(true);
+        getFrame();
     }
     
     void setWriter(File file){
      converting = true; 
-     stop();
-     rewind();
+//     stop();
+//     rewind();
+     g.updateFrameNum(0, totalframes);
      outfile = file;   
      writer = ToolFactory.makeWriter(outfile.toString(), reader); 
      addListener(writer);
+    }
+    
+    void rmvWriter(){
+        removeListener(writer);
+        outfile = null;
+        g.convmsg.setText("Done");
+        g.updateFrameNum(totalframes, totalframes);
     }
     
     @Override
@@ -65,7 +73,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     }
     
     @Override
-    public void onAudioSamples(IAudioSamplesEvent event){ //System.out.println("a");
+    public void onAudioSamples(IAudioSamplesEvent event){ 
         if(converting)
         super.onAudioSamples(event);
     }
@@ -78,22 +86,21 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     }
     
     
-    boolean getFrame(boolean stop){
-        boolean rtn = true;
+    void getFrame(){
         while(count == next){ 
-            if(reader.readPacket() != null){ go = false; break;
-               // if(stop){rtn = false; }
+            if(reader.readPacket() != null){ 
+                
+                if(converting){
+                go = false; 
+                converting = false;
+                rmvWriter();
+                break;
+                }
             }
         }
         count = next;
-        return rtn;
     }
     
-    void getFrame2(){
-        if(reader.readPacket() != null){
-            go = false;
-        }
-    }
     
     void rewind(){
         reader = ToolFactory.makeReader(infile.toString());
@@ -101,7 +108,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
         reader.addListener(this);
         currentframe = 0;
         if(!converting)
-        getFrame(true);
+        getFrame();
     }
     
     void stop(){
@@ -112,9 +119,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     void play() throws InterruptedException{
         
         while(go){
-              //if(!go){ wait();}
-                getFrame(converting);
-           //  getFrame2();
+                getFrame();
                 if(!ff){
                 Thread.sleep(framerate);
                 }else{
@@ -122,7 +127,6 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
                 }
 
         }   
-        ff = false;
         
     }
     
