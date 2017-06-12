@@ -420,6 +420,7 @@ public class Gui extends JFrame implements ChangeListener{
     public class Display extends JFrame{
      
         ImageIcon icon;
+        boolean on = true;
             
         Display(BufferedImage img){
         Gui.this.img = img;
@@ -431,16 +432,21 @@ public class Gui extends JFrame implements ChangeListener{
         addWindowListener(new WindowAdapter() {
         @Override
         public void windowClosing(WindowEvent event) {
-          Gui.this.stop();
-          dispose();
+            if(!Gui.this.vid.converting){
+                Gui.this.stop(); 
+                }
+                on = false;
+                dispose();
         }
         });
         setVisible(true);     
         }
         
         void update(BufferedImage img){
+            if(on){
             icon.setImage(img);
             repaint();
+            }
             
         }
     }
