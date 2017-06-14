@@ -1,4 +1,4 @@
-package delaunayvid2;
+package delaunayvid;
 
 import delaunay.Delaunay;
 import java.awt.BasicStroke;
@@ -8,7 +8,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
-import java.util.ArrayList;
 import java.util.Random;
 
 
@@ -27,7 +26,12 @@ double band;// = 1.75;
 double thresh;// = 0.005;
 int nodes = 0;
 int inc = 1;
-ArrayList list = new ArrayList();
+Color bkgdcolor = Color.black; 
+Color dotcolor = Color.white; 
+Color delcolor = Color.white;
+Color vorcolor = Color.red;
+boolean drawbkgd = true;
+boolean extraAa = false;
 Graphics2D g;
 
     ImgProc(){
@@ -59,6 +63,10 @@ Graphics2D g;
         gui = g;
     }
     
+//    void updateColors(Gui g){
+//        
+//    }
+    
     void setBand(double b){
             band = b;
     }
@@ -73,6 +81,16 @@ Graphics2D g;
     }
     void setInc(int n){
         inc = n;
+    }
+    
+    void setDelColor(Color in){
+        delcolor = in;
+        d.setDelaunayColor(in);
+    }
+    
+    void setVorColor(Color in){
+        vorcolor = in;
+        d.setVoronoiColor(in);
     }
     
     BufferedImage proc(BufferedImage in){
@@ -94,19 +112,18 @@ Graphics2D g;
        
        raster = bkgd.getRaster();
        g = img.createGraphics();
-      //  img.copyData(raster);
 
        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-     //  g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-      // g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
-      // g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-       g.setColor(Color.black);
-       g.fillRect(0, 0, width, height);
-       g.setColor(Color.white);
+       
+       if(extraAa)
+       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-     // list.clear();
-    // int count = 0;
-     d.reset();
+       g.setColor(bkgdcolor);
+       if(drawbkgd)
+       g.fillRect(0, 0, width, height);
+       g.setColor(dotcolor);
+
+      d.reset();
       if(seed){
           rand.setSeed(99);
       }
@@ -114,9 +131,7 @@ Graphics2D g;
         for (int y = 0; y < height; y+= inc) {
              for (int x = 0; x < width; x+= inc){ 
                  double n = getL((byte[])raster.getDataElements(x, y, null));
-                 //System.out.println(n);
                  if( Math.pow( (((rand.nextDouble()*variance)+band) - n),2 ) < thresh ){
-                     //list.add(new P(x, y));
                      if(gui.mode == Gui.Mode.dots){
                          g.drawLine(x, y, x, y);
                      }else{
@@ -126,7 +141,7 @@ Graphics2D g;
                  }
              }
         }
-        //nodes = count; //list.size();
+
         if(gui.mode == Gui.Mode.dots){
          g.dispose();
         }else{
@@ -144,17 +159,10 @@ Graphics2D g;
         return img;
     }
     
+    
     int getNodes(){
         return nodes;
     }
     
-    class P{
-        int x, y;
-        
-        P(int x, int y){
-        this.x = x; this.y = y;
-        }
-    
-    }
     
 }

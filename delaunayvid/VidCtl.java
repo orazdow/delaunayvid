@@ -1,4 +1,4 @@
-package delaunayvid2;
+package delaunayvid;
 
 import com.xuggle.mediatool.IMediaReader;
 import com.xuggle.mediatool.IMediaWriter;

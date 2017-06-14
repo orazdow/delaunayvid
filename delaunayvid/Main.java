@@ -1,11 +1,11 @@
-package delaunayvid2;
+package delaunayvid;
 
 
-public class DelaunayVid2 {
+public class Main {
 
 
     public static void main(String[] args) {
-       Gui g = new Gui(500, 500);
+       Gui g = new Gui(520, 500);
     }
     
 }

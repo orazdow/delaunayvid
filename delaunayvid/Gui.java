@@ -1,5 +1,6 @@
-package delaunayvid2;
+package delaunayvid;
 
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +14,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -42,6 +44,10 @@ public class Gui extends JFrame implements ChangeListener{
     boolean threadstarted = false;
     BufferedImage img, bkgd;
     boolean procview = false;
+    boolean dividegain = false;
+    double gaindiv = 8;
+    boolean colorpanelopen = false;
+    ColorPanel cpanel;
     public enum Mode{
         dots,delaunay,voronoi
     }
@@ -58,7 +64,7 @@ public class Gui extends JFrame implements ChangeListener{
         chooser = new JFileChooser();
         
         add(Box.createVerticalStrut(30));
-        add(new JLabel("band"));
+        add(new JLabel("Band"));
         band = new JSlider(0, 3000);
         band.addChangeListener(this);
         add(band);
@@ -68,7 +74,7 @@ public class Gui extends JFrame implements ChangeListener{
         
       
         add(Box.createVerticalStrut(10));
-        add(new JLabel("variance"));
+        add(new JLabel("Variance"));
         variance = new JSlider(0,2000);
         variance.addChangeListener(this);
         add(variance);
@@ -77,11 +83,10 @@ public class Gui extends JFrame implements ChangeListener{
         add(varval);
         
         add(Box.createVerticalStrut(10));
-        add(new JLabel("threshold"));
+        add(new JLabel("Gain"));
         thresh = new JSlider(1,1500);
         thresh.addChangeListener(this);
         add(thresh);
-        //thresh.setValue(1);
         threshval = new JLabel(String.valueOf(threshValue()));
         add(threshval);
         
@@ -156,14 +161,6 @@ public class Gui extends JFrame implements ChangeListener{
         JPanel buildrow = new JPanel(new FlowLayout());
         add(buildrow);
         
-        JButton outfile = new JButton("Select output file");
-        outfile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                selectSaveFile();
-            }
-        });
-        buildrow.add(outfile);
         
         viewdots = new JCheckBox("Process");
         viewdots.addActionListener(new ActionListener() {
@@ -171,6 +168,7 @@ public class Gui extends JFrame implements ChangeListener{
             public void actionPerformed(ActionEvent e) {
                 if(viewdots.isSelected()){
                     procview = true;
+                    if(vid != null)
                     vid.ff = true;
                     bkgd = p.bkgd; 
                     if(bkgd == null){
@@ -181,18 +179,49 @@ public class Gui extends JFrame implements ChangeListener{
                     }
                 }else{
                     procview = false; 
+                    if(vid != null)
                     vid.ff = false;
-                    if(bkgd == null){
-                        bkgd = p.bkgd;
-                    }
                     if(vid != null && !vid.go)
-                    display.update(img);
+                    display.update(p.bkgd);
                 }
             }
         });
         //viewdots.setSelected(true);
         buildrow.add(viewdots, FlowLayout.LEFT);
         
+        final JCheckBox gaindiv = new JCheckBox("Low Gain");
+        gaindiv.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dividegain = gaindiv.isSelected();
+                threshfunc(thresh.getValue());
+                if(vid != null){
+                    if(!vid.go && procview){
+                        stoppedUpdate();
+                    }
+                }
+            }
+        });
+       // gaindiv.setSelected(true);
+        buildrow.add(gaindiv);
+        
+        JButton outfile = new JButton("Select output file");
+        outfile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectSaveFile();
+            }
+        });
+        buildrow.add(outfile);
+        
+        JButton setcolors = new JButton("Set Colors");
+        setcolors.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openColorFrame();
+            }
+        });
+        buildrow.add(setcolors);
         
     //    add(Box.createVerticalStrut(20));   
         JPanel vidctls = new JPanel(new FlowLayout());
@@ -296,8 +325,9 @@ public class Gui extends JFrame implements ChangeListener{
         
         p = new ImgProc();
         p.getVals(this);
+               
         
-                       
+        thresh.setValue(90);               
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         setVisible(true);       
     }
@@ -357,6 +387,10 @@ public class Gui extends JFrame implements ChangeListener{
                   
     }
     
+    void openColorFrame(){
+        cpanel = new ColorPanel();
+    }
+    
     void updateFrameNum(long current, long total){
         framenum.setText("Frame: "+current+" / "+total);
     }
@@ -370,7 +404,7 @@ public class Gui extends JFrame implements ChangeListener{
     }
     
     double threshValue(){
-        return thresh.getValue()/1000000.0;
+        return dividegain ? thresh.getValue()/(gaindiv*1000000.0) : thresh.getValue()/1000000.0;
     }
     
     @Override
@@ -388,9 +422,7 @@ public class Gui extends JFrame implements ChangeListener{
            p.setVariance(v);      
        }
        if(source == thresh){
-           double t = source.getValue()/1000000.0;
-           threshval.setText(String.valueOf(t));
-           p.setThresh(t);       
+           threshfunc(source.getValue());
        }
         if(procview && !vid.go){
             if(mode == Mode.dots || !source.getValueIsAdjusting()){
@@ -402,7 +434,12 @@ public class Gui extends JFrame implements ChangeListener{
 
     }
     
- 
+    void threshfunc(int val){
+            double t = val/1000000.0;
+           if(dividegain){ t/=gaindiv;}
+           threshval.setText(String.valueOf(t));
+           p.setThresh(t); 
+    }
     
     void initDisplay(BufferedImage img){
         display = new Display(img);
@@ -415,6 +452,88 @@ public class Gui extends JFrame implements ChangeListener{
         }else{
             display.update(img);
         }    
+    }
+
+    
+    class ColorPanel extends JFrame{
+
+        JRadioButton dot, del, vor, bkgd;
+        ButtonGroup group = new ButtonGroup();
+        JCheckBox drawbkgd = new JCheckBox("Draw Background");
+        JCheckBox extraAa = new JCheckBox("Extra AntiAliasing");
+        
+        ColorPanel(){
+            Gui.this.colorpanelopen = true;
+            setSize(400, 200);
+            setLayout(new FlowLayout());
+            JPanel panel = new JPanel();
+            add(panel);
+            JButton delbutton = new JButton("Set");
+            delbutton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if(dot.isSelected()){
+                        Gui.this.p.dotcolor = JColorChooser.showDialog(null, "Dot Color", Gui.this.p.dotcolor);
+                    }else if(del.isSelected()){
+                        Gui.this.p.setDelColor(JColorChooser.showDialog(null, "Delaunay Color", Gui.this.p.delcolor));
+                    }
+                    else if(vor.isSelected()){
+                         Gui.this.p.setVorColor(JColorChooser.showDialog(null, "Voronoi Color", Gui.this.p.vorcolor));
+                    }else if(bkgd.isSelected()){
+                        Gui.this.p.bkgdcolor = JColorChooser.showDialog(null, "Background Color", Gui.this.p.bkgdcolor);
+                    }
+                }
+            });
+            panel.add(delbutton);
+            
+            dot = new JRadioButton("Dots");
+            del = new JRadioButton("Delaunay");
+            vor = new JRadioButton("Voronoi");
+            bkgd = new JRadioButton("Background");
+            group.add(dot);
+            group.add(del);
+            group.add(vor);
+            group.add(bkgd);
+           // del.setSelected(true);
+            panel.add(dot);
+            panel.add(del);
+            panel.add(vor);
+            panel.add(bkgd);
+            
+            JPanel p2 = new JPanel();
+            add(p2);
+            p2.add(drawbkgd);
+            drawbkgd.setSelected(true);
+            p2.add(Box.createHorizontalStrut(240));
+            drawbkgd.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    p.drawbkgd = drawbkgd.isSelected();
+                }
+            });
+            JPanel p3 = new JPanel();
+            add(p3);
+            p3.add(extraAa);
+            p3.add(Box.createHorizontalStrut(240));
+            extraAa.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    p.extraAa = extraAa.isSelected();
+                }
+            });            
+            setVisible(true);
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
+            addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                Gui.this.colorpanelopen = false;
+                dispose();
+            }
+            });
+
+        }
+        
+        
     }
     
     public class Display extends JFrame{
