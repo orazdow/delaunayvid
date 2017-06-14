@@ -15,8 +15,10 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
+import static javax.swing.JFileChooser.SAVE_DIALOG;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -60,8 +62,30 @@ public class Gui extends JFrame implements ChangeListener{
         
         mode = Mode.delaunay;
                 
-        chooser = new JFileChooser();
-        
+        chooser = new JFileChooser() {
+        @Override
+        public void approveSelection() {
+            File f = getSelectedFile();
+            if (f.exists() && getDialogType() == SAVE_DIALOG) {
+                int result = JOptionPane.showConfirmDialog(this,
+                        "The file exists, overwrite?", "Existing file",
+                        JOptionPane.YES_NO_CANCEL_OPTION);
+                switch (result) {
+                    case JOptionPane.YES_OPTION:
+                        super.approveSelection();
+                        return;
+                    case JOptionPane.NO_OPTION:
+                        return;
+                    case JOptionPane.CLOSED_OPTION:
+                        return;
+                    case JOptionPane.CANCEL_OPTION:
+                        cancelSelection();
+                        return;
+                }
+            }
+            super.approveSelection();
+        }
+    };
         add(Box.createVerticalStrut(30));
         add(new JLabel("Band"));
         band = new JSlider(0, 3000);
@@ -346,6 +370,9 @@ public class Gui extends JFrame implements ChangeListener{
          int rtn = chooser.showOpenDialog(this); 
          if (rtn == JFileChooser.APPROVE_OPTION){
              infile = chooser.getSelectedFile();
+             if(convmsg.getText().equalsIgnoreCase("Done")){
+                 convmsg.setText("");
+             }
              if(display != null){
                stop();
                display.dispose();
