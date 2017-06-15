@@ -193,10 +193,8 @@ public class Gui extends JFrame implements ChangeListener{
                     procview = true;
                     if(vid != null)
                     vid.ff = true;
+                    p.setImg(img); 
                     bkgd = p.bkgd; 
-                    if(bkgd == null){
-                        bkgd = img;
-                    }
                     if(vid != null && !vid.go){ 
                     display.update(imgProc(bkgd));
                     }
@@ -225,7 +223,7 @@ public class Gui extends JFrame implements ChangeListener{
                 }
             }
         });
-       // gaindiv.setSelected(true);
+       
         buildrow.add(gaindiv);
         
         JButton outfile = new JButton("Select output file");
@@ -264,7 +262,7 @@ public class Gui extends JFrame implements ChangeListener{
         play.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(vid != null){ 
+                if(vid != null){
                     if(t == null || !t.isAlive()){
                     t = new Thread(vid);
                     t.start();
