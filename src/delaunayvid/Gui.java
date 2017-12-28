@@ -36,7 +36,8 @@ public class Gui extends JFrame implements ChangeListener{
     ButtonGroup radiogroup;
     File infile;
     VidCtl vid;
-    ImgProc p;
+    //ImgProc p;
+    Img_Proc p;
     JLabel bandval, varval, threshval, nodecount, framenum, convmsg;
     int nodes;
     boolean seed = true;
@@ -48,6 +49,7 @@ public class Gui extends JFrame implements ChangeListener{
     boolean dividegain = false;
     double gaindiv = 8;
     boolean colorpanelopen = false;
+    boolean doubleRez = false;
     ColorPanel cpanel;
     public enum Mode{
         dots,delaunay,voronoi
@@ -86,6 +88,9 @@ public class Gui extends JFrame implements ChangeListener{
             super.approveSelection();
         }
     };
+        
+      //  chooser.setCurrentDirectory(new File(""));
+        
         add(Box.createVerticalStrut(30));
         add(new JLabel("Band"));
         band = new JSlider(0, 3000);
@@ -194,7 +199,7 @@ public class Gui extends JFrame implements ChangeListener{
                     if(vid != null)
                     vid.ff = true;
                     p.setImg(img); 
-                    bkgd = p.bkgd; 
+                    bkgd = p.a_img; 
                     if(vid != null && !vid.go){ 
                     display.update(imgProc(bkgd));
                     }
@@ -203,7 +208,7 @@ public class Gui extends JFrame implements ChangeListener{
                     if(vid != null)
                     vid.ff = false;
                     if(vid != null && !vid.go)
-                    display.update(p.bkgd);
+                    display.update(p.a_img);
                 }
             }
         });
@@ -226,15 +231,7 @@ public class Gui extends JFrame implements ChangeListener{
        
         buildrow.add(gaindiv);
         
-        JButton outfile = new JButton("Select output file");
-        outfile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                selectSaveFile();
-            }
-        });
-        buildrow.add(outfile);
-        
+
         JButton setcolors = new JButton("Set Colors");
         setcolors.addActionListener(new ActionListener() {
             @Override
@@ -244,9 +241,9 @@ public class Gui extends JFrame implements ChangeListener{
         });
         buildrow.add(setcolors);
         
-    //    add(Box.createVerticalStrut(20));   
-        JPanel vidctls = new JPanel(new FlowLayout());
-        add(vidctls);
+
+        JPanel filectls = new JPanel(new FlowLayout());
+        add(filectls);   
         
         openFile = new JButton("Open File");
         openFile.addActionListener(new ActionListener() {
@@ -255,7 +252,31 @@ public class Gui extends JFrame implements ChangeListener{
               openFile();
             }
         });
-        vidctls.add(openFile, FlowLayout.LEFT);
+        filectls.add(openFile, FlowLayout.LEFT);
+        
+        JButton outfile = new JButton("Select output file");
+        outfile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectSaveFile();
+            }
+        });
+        
+        filectls.add(outfile);
+         final JCheckBox doubleRezCheck = new JCheckBox("2x res");
+        doubleRezCheck.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doubleRez = doubleRezCheck.isSelected();
+                //.
+            }
+        });
+        filectls.add(doubleRezCheck);
+               
+
+    //    add(Box.createVerticalStrut(20));   
+        JPanel vidctls = new JPanel(new FlowLayout());
+        add(vidctls);
         
         
         play = new JButton("Play");
@@ -344,7 +365,7 @@ public class Gui extends JFrame implements ChangeListener{
         convmsg = new JLabel();
         framemsg.add(convmsg);
         
-        p = new ImgProc();
+        p = new Img_Proc();
         p.getVals(this);
                
         
@@ -396,14 +417,9 @@ public class Gui extends JFrame implements ChangeListener{
         }
     }
     
-    BufferedImage imgProc(BufferedImage img){
-            p.setImg(img);
-            p.proc();
-            return p.getImage();
-    }
-    
+
     void stoppedUpdate(){
-        bkgd = p.bkgd; 
+        bkgd = p.a_img;
         if(bkgd == null){bkgd = img;}                      
         if(vid != null && !vid.go){ 
          display.update(imgProc(bkgd));
@@ -469,15 +485,19 @@ public class Gui extends JFrame implements ChangeListener{
         display = new Display(img);
     }
     
-    void updateImg(BufferedImage img){
-        this.img = img; 
-        if(procview){
-            display.update(imgProc(img));
-        }else{
-            display.update(img);
-        }    
+    BufferedImage updateImg(BufferedImage _img){
+        img = procview? imgProc(_img) : _img;
+        display.update(img);
+        return img;    
     }
-
+    
+    
+    BufferedImage imgProc(BufferedImage img){
+            p.setImg(img);
+            p.proc();
+            return p.getImage();
+    }
+    
     
     class ColorPanel extends JFrame{
 
@@ -485,10 +505,13 @@ public class Gui extends JFrame implements ChangeListener{
         ButtonGroup group = new ButtonGroup();
         JCheckBox drawbkgd = new JCheckBox("Draw Background");
         JCheckBox extraAa = new JCheckBox("Extra AntiAliasing");
-        
+        JLabel sys = new JLabel();
+        JCheckBox ignore = new JCheckBox("Ignore triangles larger than:");
+        JSlider trilim = new JSlider();
         ColorPanel(){
+            sys.setText("jre: "+System.getProperty("java.version"));
             Gui.this.colorpanelopen = true;
-            setSize(400, 200);
+            setSize(400, 400);
             setLayout(new FlowLayout());
             JPanel panel = new JPanel();
             add(panel);
@@ -554,6 +577,33 @@ public class Gui extends JFrame implements ChangeListener{
                 dispose();
             }
             });
+            ignore.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    p.ignore = ignore.isSelected();
+                }
+            });
+            
+            JPanel p4 = new JPanel();
+            add(p4);
+            p4.add(ignore);
+            
+            trilim = new JSlider(1, 50, 20);
+            trilim.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    p.trilim = trilim.getValue();
+                }
+            });
+ 
+            JPanel p5 = new JPanel();
+            add(p5);
+            p5.add(trilim);
+            
+            
+            JPanel p6 = new JPanel();
+            add(p6);
+            p6.add(sys);
 
         }
         

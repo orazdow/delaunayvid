@@ -7,9 +7,11 @@ import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.mediatool.event.IAddStreamEvent;
 import com.xuggle.mediatool.event.IAudioSamplesEvent;
 import com.xuggle.mediatool.event.IVideoPictureEvent;
+import com.xuggle.mediatool.event.VideoPictureEvent;
+import com.xuggle.xuggler.ICodec;
+import com.xuggle.xuggler.IStreamCoder;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
 
 public class VidCtl extends MediaToolAdapter implements Runnable{
     
@@ -27,6 +29,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     Gui g;
     File infile, outfile;
     long currentframe = 0;
+    Integer newWidth = null, newHeight = null;
     
     VidCtl(File infile, Gui g){
         this.infile = infile;
@@ -38,13 +41,15 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     }
     
     void setWriter(File file){
-     converting = true; 
-//     stop();
-//     rewind();
-     g.updateFrameNum(0, totalframes);
-     outfile = file;   
-     writer = ToolFactory.makeWriter(outfile.toString(), reader); 
-     addListener(writer);
+        converting = true; 
+        g.updateFrameNum(0, totalframes);
+        outfile = file;   
+        writer = ToolFactory.makeWriter(outfile.toString(), reader); 
+        if(newWidth != null && newHeight != null){
+            ScaleListener scaleListener = new ScaleListener(newWidth, newHeight);
+            writer.addListener(scaleListener);
+        }
+        addListener(writer);
     }
     
     void rmvWriter(){
@@ -58,18 +63,25 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     public void onVideoPicture(IVideoPictureEvent event){
             next++; 
             img = event.getImage(); 
+            
             if(!image1st){
                g.initDisplay(img);
                image1st = true;
             }
-            g.updateImg(img);
+            
+            img = g.updateImg(img);
             currentframe++;
             if(currentframe > totalframes){
                 currentframe = 0;
             }
             g.updateFrameNum(currentframe, totalframes);
-        if(converting)
-        super.onVideoPicture(event);
+            
+        if(converting){
+            if(g.doubleRez){
+                IVideoPictureEvent e = new VideoPictureEvent(event.getSource(), img, event.getTimeStamp(), event.getTimeUnit(), event.getStreamIndex());
+                super.onVideoPicture(e);
+            }else{super.onVideoPicture(event);}
+        }
     }
     
     @Override
@@ -80,16 +92,18 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     
     @Override
     public void onAddStream(IAddStreamEvent event){
+       if(g.doubleRez){
+        newWidth = event.getSource().getContainer().getStream(0).getStreamCoder().getWidth()*2;
+        newHeight = event.getSource().getContainer().getStream(0).getStreamCoder().getHeight()*2;
+       }
        totalframes = event.getSource().getContainer().getStream(0).getNumFrames();
-       framerate = Math.round(1000/event.getSource().getContainer().getStream(0).getFrameRate().getDouble());
-       
+       framerate = Math.round(1000/event.getSource().getContainer().getStream(0).getFrameRate().getDouble());       
     }
     
     
     void getFrame(){
         while(count == next){ 
-            if(reader.readPacket() != null){ 
-                
+            if(reader.readPacket() != null){             
                 if(converting){
                 go = false; 
                 converting = false;
@@ -116,8 +130,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     }
     
     
-    void play() throws InterruptedException{
-        
+    void play() throws InterruptedException{    
         while(go){
                 getFrame();
                 if(!ff){
@@ -125,9 +138,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
                 }else{
                // Thread.sleep(1);
                 }
-
-        }   
-        
+        }          
     }
     
 
@@ -140,5 +151,27 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
         }
 
     }
+    
+public class ScaleListener extends MediaToolAdapter {
+	private int width, height;
+ 
+	public ScaleListener(Integer width, Integer height) {
+		this.width = width;
+		this.height = height;
+	}
+ 
+	@Override
+	public void onAddStream(IAddStreamEvent event) {
+		int streamIndex = event.getStreamIndex();
+		IStreamCoder streamCoder = event.getSource().getContainer().getStream(streamIndex).getStreamCoder();
+		if (streamCoder.getCodecType() == ICodec.Type.CODEC_TYPE_AUDIO) {
+		} else if (streamCoder.getCodecType() == ICodec.Type.CODEC_TYPE_VIDEO) {
+			streamCoder.setWidth(width);
+			streamCoder.setHeight(height);
+		}
+		super.onAddStream(event);
+	}
+ 
+}
     
 }
