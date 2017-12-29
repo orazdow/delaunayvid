@@ -267,8 +267,10 @@ public class Gui extends JFrame implements ChangeListener{
         doubleRezCheck.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                doubleRez = doubleRezCheck.isSelected();
-                //.
+                
+                if(doubleRezCheck.isSelected()){
+                    doubleRez = true;
+                }
             }
         });
         filectls.add(doubleRezCheck);

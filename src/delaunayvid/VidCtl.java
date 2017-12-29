@@ -30,6 +30,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     File infile, outfile;
     long currentframe = 0;
     Integer newWidth = null, newHeight = null;
+    ScaleListener scaleListener;
     
     VidCtl(File infile, Gui g){
         this.infile = infile;
@@ -46,7 +47,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
         outfile = file;   
         writer = ToolFactory.makeWriter(outfile.toString(), reader); 
         if(newWidth != null && newHeight != null){
-            ScaleListener scaleListener = new ScaleListener(newWidth, newHeight);
+            scaleListener = new ScaleListener(newWidth, newHeight);
             writer.addListener(scaleListener);
         }
         addListener(writer);
@@ -78,9 +79,12 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
             
         if(converting){
             if(g.doubleRez){
+                if(!g.procview){ img = Proc.cloneScale(img, scaleListener.width, scaleListener.height); }
                 IVideoPictureEvent e = new VideoPictureEvent(event.getSource(), img, event.getTimeStamp(), event.getTimeUnit(), event.getStreamIndex());
                 super.onVideoPicture(e);
-            }else{super.onVideoPicture(event);}
+            }else{
+                super.onVideoPicture(event);
+            }
         }
     }
     
@@ -152,6 +156,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
 
     }
     
+
 public class ScaleListener extends MediaToolAdapter {
 	private int width, height;
  
@@ -169,7 +174,7 @@ public class ScaleListener extends MediaToolAdapter {
 			streamCoder.setWidth(width);
 			streamCoder.setHeight(height);
 		}
-		super.onAddStream(event);
+		super.onAddStream(event);              
 	}
  
 }

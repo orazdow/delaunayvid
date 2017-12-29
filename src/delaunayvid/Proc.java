@@ -112,7 +112,7 @@ boolean ignore = false;
         return new BufferedImage(img.getColorModel(), img.copyData(null), img.isAlphaPremultiplied(), null);
     }
     
-    BufferedImage cloneScale(BufferedImage imageToScale, int width, int height) {  
+    public static BufferedImage cloneScale(BufferedImage imageToScale, int width, int height) {  
         BufferedImage scaledImage = new BufferedImage(width, height, imageToScale.getType());
         Graphics2D graphics2D = scaledImage.createGraphics();
         graphics2D.drawImage(imageToScale, 0, 0, width, height, null);
