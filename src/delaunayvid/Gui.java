@@ -29,15 +29,14 @@ public class Gui extends JFrame implements ChangeListener{
     JSlider band;
     JSlider variance;
     JSlider thresh;
-    JCheckBox seedCheck, skipCheck, viewdots;
+    JCheckBox seedCheck, skipCheck, viewdots, displaytoggle;
     JButton openFile, nextframe, play, stop, back, seek, build;
     JFileChooser chooser;
     JRadioButton dots, delaunay, voronoi;
     ButtonGroup radiogroup;
     File infile;
     VidCtl vid;
-    //ImgProc p;
-    Img_Proc p;
+    ImgProc p;
     JLabel bandval, varval, threshval, nodecount, framenum, convmsg;
     int nodes;
     boolean seed = true;
@@ -231,6 +230,23 @@ public class Gui extends JFrame implements ChangeListener{
        
         buildrow.add(gaindiv);
         
+        displaytoggle = new JCheckBox("display");
+        displaytoggle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(display != null){
+                if(displaytoggle.isSelected()){
+                    display.setVisible(true);
+                    display.on = true;
+                }else{
+                    display.dispose();
+                    display.on = false;
+                }
+                }
+            }
+        });
+        buildrow.add(displaytoggle);
+        
 
         JButton setcolors = new JButton("Set Colors");
         setcolors.addActionListener(new ActionListener() {
@@ -263,14 +279,13 @@ public class Gui extends JFrame implements ChangeListener{
         });
         
         filectls.add(outfile);
-         final JCheckBox doubleRezCheck = new JCheckBox("2x res");
+        
+        final JCheckBox doubleRezCheck = new JCheckBox("2x res");
         doubleRezCheck.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                
-                if(doubleRezCheck.isSelected()){
-                    doubleRez = true;
-                }
+            public void actionPerformed(ActionEvent e) {              
+                if(vid == null || !vid.converting)
+                    doubleRez = doubleRezCheck.isSelected();
             }
         });
         filectls.add(doubleRezCheck);
@@ -367,9 +382,10 @@ public class Gui extends JFrame implements ChangeListener{
         convmsg = new JLabel();
         framemsg.add(convmsg);
         
-        p = new Img_Proc();
+        p = new ImgProc();
         p.getVals(this);
                
+        cpanel = new ColorPanel();  
         
         thresh.setValue(90);               
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
@@ -430,7 +446,7 @@ public class Gui extends JFrame implements ChangeListener{
     }
     
     void openColorFrame(){
-        cpanel = new ColorPanel();
+        cpanel.setVisible(true);
     }
     
     void updateFrameNum(long current, long total){
@@ -493,7 +509,6 @@ public class Gui extends JFrame implements ChangeListener{
         return img;    
     }
     
-    
     BufferedImage imgProc(BufferedImage img){
             p.setImg(img);
             p.proc();
@@ -543,7 +558,7 @@ public class Gui extends JFrame implements ChangeListener{
             group.add(del);
             group.add(vor);
             group.add(bkgd);
-           // del.setSelected(true);
+            del.setSelected(true);
             panel.add(dot);
             panel.add(del);
             panel.add(vor);
@@ -570,7 +585,7 @@ public class Gui extends JFrame implements ChangeListener{
                     p.extraAa = extraAa.isSelected();
                 }
             });            
-            setVisible(true);
+           // setVisible(true);
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
             addWindowListener(new WindowAdapter() {
             @Override
@@ -631,7 +646,12 @@ public class Gui extends JFrame implements ChangeListener{
                 Gui.this.stop(); 
                 }
                 on = false;
+                displaytoggle.setSelected(false);
                 dispose();
+        }
+        @Override
+        public void windowOpened(WindowEvent e){
+             displaytoggle.setSelected(true);
         }
         });
         setVisible(true);     

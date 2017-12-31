@@ -46,10 +46,8 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
         g.updateFrameNum(0, totalframes);
         outfile = file;   
         writer = ToolFactory.makeWriter(outfile.toString(), reader); 
-        if(newWidth != null && newHeight != null){
-            scaleListener = new ScaleListener(newWidth, newHeight);
-            writer.addListener(scaleListener);
-        }
+        scaleListener = new ScaleListener(newWidth, newHeight);
+        writer.addListener(scaleListener);
         addListener(writer);
     }
     
@@ -79,7 +77,7 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
             
         if(converting){
             if(g.doubleRez){
-                if(!g.procview){ img = Proc.cloneScale(img, scaleListener.width, scaleListener.height); }
+                if(!g.procview){ img = Proc.cloneScale(img, newWidth, newHeight); }
                 IVideoPictureEvent e = new VideoPictureEvent(event.getSource(), img, event.getTimeStamp(), event.getTimeUnit(), event.getStreamIndex());
                 super.onVideoPicture(e);
             }else{
@@ -96,12 +94,11 @@ public class VidCtl extends MediaToolAdapter implements Runnable{
     
     @Override
     public void onAddStream(IAddStreamEvent event){
-       if(g.doubleRez){
-        newWidth = event.getSource().getContainer().getStream(0).getStreamCoder().getWidth()*2;
-        newHeight = event.getSource().getContainer().getStream(0).getStreamCoder().getHeight()*2;
-       }
-       totalframes = event.getSource().getContainer().getStream(0).getNumFrames();
-       framerate = Math.round(1000/event.getSource().getContainer().getStream(0).getFrameRate().getDouble());       
+        newWidth = event.getSource().getContainer().getStream(0).getStreamCoder().getWidth();
+        newHeight = event.getSource().getContainer().getStream(0).getStreamCoder().getHeight();
+        if(g.doubleRez){ newWidth *= 2; newHeight *= 2; }
+        totalframes = event.getSource().getContainer().getStream(0).getNumFrames();
+        framerate = Math.round(1000/event.getSource().getContainer().getStream(0).getFrameRate().getDouble());       
     }
     
     

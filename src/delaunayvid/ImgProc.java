@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 
 
-public class Img_Proc extends Proc{
+public class ImgProc extends Proc{
     
     BufferedImage a_img, draw_img;
     Raster a_raster;
