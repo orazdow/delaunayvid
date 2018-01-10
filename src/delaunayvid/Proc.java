@@ -118,7 +118,17 @@ boolean ignore = false;
         graphics2D.drawImage(imageToScale, 0, 0, width, height, null);
         graphics2D.dispose();
         return scaledImage;
-    }  
+    }
+    
+    static float getR(int in){
+        return ((in & 0xff0000) >> 16)/(float)255;
+    }
+    static float getG(int in){
+        return ((in & 0xff00) >> 8)/(float)255;
+    }
+    static float getB(int in){
+        return (in & 0xff)/(float)255;
+    }        
 //     BufferedImage cloneScale(BufferedImage imageToScale, int width, int height) {  
 //         WritableRaster a = imageToScale.getData().createCompatibleWritableRaster(width, height);
 //         ColorModel c = imageToScale.getColorModel();
