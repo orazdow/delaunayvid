@@ -7,7 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-public class Proc {
+public abstract class Proc {
     
 Gui gui;
 Delaunay d = new Delaunay();  
@@ -127,21 +127,12 @@ boolean ignore = false;
 //    }     
 /*------------------------------------------------------*/
     
-    void setImg(BufferedImage in){
-        //
-    }
+    abstract void setImg(BufferedImage in);
         
-    void proc(){
-        //
-    }   
+    abstract void proc();   
     
-    void draw(Graphics g){
-        //
-    }
+    abstract void draw(Graphics g);
     
-    BufferedImage getImage(){
-        //
-        return null;
-    }
+    abstract BufferedImage getImage();
     
 }
