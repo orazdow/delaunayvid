@@ -108,6 +108,16 @@ boolean ignore = false;
        return 1-(float) Math.min(in/(double)div, 1);
     }
     
+    static float getR(int in){
+        return ((in & 0xff0000) >> 16)/(float)255;
+    }
+    static float getG(int in){
+        return ((in & 0xff00) >> 8)/(float)255;
+    }
+    static float getB(int in){
+        return (in & 0xff)/(float)255;
+    } 
+    
     BufferedImage clone(BufferedImage img){
         return new BufferedImage(img.getColorModel(), img.copyData(null), img.isAlphaPremultiplied(), null);
     }

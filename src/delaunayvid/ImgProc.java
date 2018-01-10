@@ -85,6 +85,8 @@ public class ImgProc extends Proc{
             if(!t.boundary && drawDelaunay){
                 if(ignore){
                     g.setColor(Color.getHSBColor(tscale(t.r,trilim),1, tscale(t.r,100))); 
+//                  int c = delcolor.getRGB();
+//                  g.setColor(new Color(getR(c), getG(c), getB(c), tscale(t.r,trilim)));
                 }else{
                     g.setColor(delcolor); 
                 }
