@@ -382,7 +382,7 @@ public class Gui extends JFrame implements ChangeListener{
         convmsg = new JLabel();
         framemsg.add(convmsg);
         
-        p = new ImgProc();
+        p = new ImgProc(this);
         p.getVals(this);
                
         cpanel = new ColorPanel();  

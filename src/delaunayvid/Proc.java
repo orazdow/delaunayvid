@@ -10,7 +10,6 @@ import java.util.Random;
 public abstract class Proc {
     
 Gui gui;
-Delaunay d = new Delaunay();  
 Random rand = new Random();
 boolean seed = true;
 int height, width, xdiv, ydiv, div, totalpix;  
@@ -60,40 +59,30 @@ boolean ignore = false;
     
     void setDelColor(Color in){
         delcolor = in;
-        d.setDelaunayColor(in);
     }
     
     void setVorColor(Color in){
         vorcolor = in;
-        d.setVoronoiColor(in);
     }
     
     void setDelaunay(){
         drawDelaunay = true;
         drawVoronoi = false;
-        d.setDrawDelaunay(true);
-        d.setDrawVoronoi(false);
     }
     
     void setVoronoi(){
         drawVoronoi = true;
         drawDelaunay = false;
-        d.setDrawDelaunay(false);
-        d.setDrawVoronoi(true);
     }
     
     void setDelaunay(boolean in){
         drawDelaunay = in;
         drawVoronoi = !in;
-        d.setDrawDelaunay(drawDelaunay);
-        d.setDrawVoronoi(drawVoronoi);
     }
     
     void setVoronoi(boolean in){
         drawDelaunay = !in;
         drawVoronoi = in;
-        d.setDrawDelaunay(drawDelaunay);
-        d.setDrawVoronoi(drawVoronoi);
     } 
     
     double getL(byte[] in){  //3 index byte 
@@ -120,21 +109,7 @@ boolean ignore = false;
         return scaledImage;
     }
     
-    static float getR(int in){
-        return ((in & 0xff0000) >> 16)/(float)255;
-    }
-    static float getG(int in){
-        return ((in & 0xff00) >> 8)/(float)255;
-    }
-    static float getB(int in){
-        return (in & 0xff)/(float)255;
-    }        
-//     BufferedImage cloneScale(BufferedImage imageToScale, int width, int height) {  
-//         WritableRaster a = imageToScale.getData().createCompatibleWritableRaster(width, height);
-//         ColorModel c = imageToScale.getColorModel();
-//         BufferedImage scaledImage = new BufferedImage(c, a, c.isAlphaPremultiplied(), null); 
-//         return scaledImage;
-//    }     
+  
 /*------------------------------------------------------*/
     
     abstract void setImg(BufferedImage in);
