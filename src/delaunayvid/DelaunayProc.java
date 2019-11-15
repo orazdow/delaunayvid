@@ -41,10 +41,13 @@ public class DelaunayProc extends ProcHandler{
         for(Triangle t : d.triangles.triangles.values()){
             d.setNeighbors(t);           
             if(!t.boundary && proc.drawDelaunay){
-                if(proc.ignore){ 
-                  //  g.setColor(Color.getHSBColor(tscale(t.r,trilim),1, tscale(t.r,100))); 
-                  int c = proc.delcolor.getRGB();
-                  g.setColor(new Color(getR(c), getG(c), getB(c), tscale(t.r,proc.trilim)));
+                if(proc.trifade){
+                    if(proc.rainbowMode){
+                        g.setColor(Color.getHSBColor(tscale(t.r,proc.trilim),1, tscale(t.r,100))); 
+                    }else{
+                        int c = proc.delcolor.getRGB();
+                        g.setColor(new Color(getR(c), getG(c), getB(c), tscale(t.r,proc.trilim)));
+                    }
                 }else{
                     g.setColor(proc.delcolor); 
                 }

@@ -521,10 +521,13 @@ public class Gui extends JFrame implements ChangeListener{
         JRadioButton dot, del, vor, bkgd;
         ButtonGroup group = new ButtonGroup();
         JCheckBox drawbkgd = new JCheckBox("Draw Background");
-        JCheckBox extraAa = new JCheckBox("Extra AntiAliasing");
         JLabel sys = new JLabel();
-        JCheckBox ignore = new JCheckBox("Ignore triangles larger than:");
+        JCheckBox trifade = new JCheckBox("fade triangles larger than:");
         JSlider trilim = new JSlider();
+        JSlider lineThickness = new JSlider(10, 40, 10);
+        JLabel thickNum = new JLabel("1.0");
+        JCheckBox rainbowMode = new JCheckBox("Rainbow triangle fade");
+        
         ColorPanel(){
             sys.setText("jre: "+System.getProperty("java.version"));
             Gui.this.colorpanelopen = true;
@@ -573,19 +576,97 @@ public class Gui extends JFrame implements ChangeListener{
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     p.drawbkgd = drawbkgd.isSelected();
+                    if(procview && !vid.go){
+                        stoppedUpdate();
+                    }
+                }
+            
+            });
+            
+//            JPanel p3 = new JPanel();
+//            add(p3);
+//            p3.add(extraAa);
+//            p3.add(Box.createHorizontalStrut(240));
+//            extraAa.addActionListener(new ActionListener() {
+//                @Override
+//                public void actionPerformed(ActionEvent e) {
+//                    p.extraAa = extraAa.isSelected();
+//                }
+//            });     
+            
+            JPanel p4 = new JPanel();
+            add(p4);
+            p4.add(new JLabel("Line Thickness"));
+            p4.add(Box.createVerticalStrut(40));
+            p4.add(lineThickness);
+            p4.add(thickNum);
+            
+            lineThickness.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    float t = lineThickness.getValue()/10f;
+                    p.thickness = t;
+                    thickNum.setText(String.valueOf(t)); 
+                    if(!(((JSlider)e.getSource()).getValueIsAdjusting()) && procview && !vid.go){
+                            stoppedUpdate();                   
+                    }
+                    
                 }
             });
-            JPanel p3 = new JPanel();
-            add(p3);
-            p3.add(extraAa);
-            p3.add(Box.createHorizontalStrut(240));
-            extraAa.addActionListener(new ActionListener() {
+            
+            trifade.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    p.extraAa = extraAa.isSelected();
+                    p.trifade = trifade.isSelected();
+                    if(procview && !vid.go){
+                        stoppedUpdate();
+                    }
                 }
-            });            
-           // setVisible(true);
+            });
+            
+            JPanel p5 = new JPanel();
+            add(p5);
+            p5.add(Box.createHorizontalStrut(240));
+            p5.add(trifade);
+//            p5.add(Box.createHorizontalStrut(240));
+
+//            p5.add(Box.createVerticalStrut(40));
+            
+            trilim = new JSlider(1, 50, 20);
+            trilim.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    p.trilim = trilim.getValue();
+                    if(!(((JSlider)e.getSource()).getValueIsAdjusting()) && procview && !vid.go){
+                        stoppedUpdate();                   
+                    }
+                }
+            });
+            p5.add(trilim);
+            p5.add(Box.createHorizontalStrut(240));
+
+
+            JPanel p6 = new JPanel();
+            add(p6);
+            p6.add(Box.createHorizontalStrut(12));
+            p6.add(rainbowMode);
+            rainbowMode.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    p.rainbowMode = rainbowMode.isSelected();
+                    if(procview && !vid.go){
+                        stoppedUpdate();
+                    }
+                }
+            });
+            p6.add(Box.createHorizontalStrut(240));
+            
+            
+            JPanel p7 = new JPanel();
+            add(p7);
+            p7.add(sys);
+            
+            // setVisible(true);
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
             addWindowListener(new WindowAdapter() {
             @Override
@@ -594,33 +675,6 @@ public class Gui extends JFrame implements ChangeListener{
                 dispose();
             }
             });
-            ignore.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    p.ignore = ignore.isSelected();
-                }
-            });
-            
-            JPanel p4 = new JPanel();
-            add(p4);
-            p4.add(ignore);
-            
-            trilim = new JSlider(1, 50, 20);
-            trilim.addChangeListener(new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    p.trilim = trilim.getValue();
-                }
-            });
- 
-            JPanel p5 = new JPanel();
-            add(p5);
-            p5.add(trilim);
-            
-            
-            JPanel p6 = new JPanel();
-            add(p6);
-            p6.add(sys);
 
         }
         

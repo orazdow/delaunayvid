@@ -22,12 +22,14 @@ Color bkgdcolor = Color.black;
 Color dotcolor = Color.white; 
 Color delcolor = Color.white;
 Color vorcolor = Color.red;
+float thickness = 1;
 boolean drawDelaunay = true;
 boolean drawVoronoi = false; 
 boolean delaunayInit = false;
 boolean drawbkgd = true;
 boolean extraAa = false;
-boolean ignore = false;
+boolean trifade = false;
+boolean rainbowMode = false;
 
 
     void getVals(Gui g){
